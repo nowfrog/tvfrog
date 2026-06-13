@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TVfrog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/tvfrog/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/tvfrog/favicon.svg" />
+    <link rel="shortcut icon" href="/tvfrog/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/tvfrog/apple-touch-icon.png" />
+    <link rel="manifest" href="/tvfrog/site.webmanifest" />
+    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header">
+        <h1 class="header-title">TVfrog</h1>
+        <div class="header-actions">
+            <button id="refresh-all-btn" class="h-btn hidden" title="Refresh all show data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg></button>
+            <a href="/tvfrog/stats.html" class="h-btn" title="Stats"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h2v-8H5v8zm6 0h2V4h-2v16zm6 0h2v-12h-2v12z"/></svg></a>
+            <button id="theme-toggle" class="h-btn" aria-label="Theme"></button>
+            <div class="lock-wrap">
+                <button id="lock-btn" class="h-btn" aria-label="Admin">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </button>
+                <div id="lock-popup" class="lock-popup hidden">
+                    <div id="login-form">
+                        <input type="password" id="admin-pwd" placeholder="Password..." class="popup-input">
+                        <button id="login-btn" class="popup-btn">Login</button>
+                    </div>
+                    <div id="logout-form" class="hidden">
+                        <button id="logout-btn" class="popup-btn popup-btn-red">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin bar -->
+    <div id="admin-bar" class="admin-bar hidden">
+        <button id="manage-btn" class="manage-btn">Manage Lists</button>
+    </div>
+
+    <!-- Admin panel -->
+    <div id="admin-panel" class="admin-panel hidden">
+        <div class="glass-card admin-card">
+            <div class="admin-row">
+                <label>Action:</label>
+                <select id="adm-action">
+                    <option value="" disabled selected>Select...</option>
+                    <option value="create">Create new list</option>
+                    <option value="delete">Delete a list</option>
+                </select>
+            </div>
+            <div id="adm-new-fields" class="hidden">
+                <input type="text" id="adm-new-name" placeholder="New list name..." class="adm-input">
+            </div>
+            <div id="adm-delete-fields" class="hidden">
+                <select id="adm-delete-select" class="adm-input">
+                    <option value="" disabled selected>Select list to delete...</option>
+                </select>
+            </div>
+            <button id="adm-submit" class="adm-submit hidden">Submit</button>
+            <div id="adm-msg" class="adm-msg hidden"></div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+        <input type="search" id="search-input" placeholder="Search TV shows..." class="search-input">
+        <button id="search-btn" class="search-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        </button>
+    </div>
+
+    <!-- Nav -->
+    <nav class="nav" id="nav">
+        <button class="nav-pill active" data-view="search">Search</button>
+    </nav>
+
+    <!-- Welcome -->
+    <div id="welcome" class="welcome">
+        <p>Track your TV shows. Search, organize into lists, and never miss an episode.</p>
+    </div>
+
+    <!-- List filter & sort -->
+    <div id="list-filter" class="list-filter hidden">
+        <input type="search" id="list-filter-input" class="list-filter-input" placeholder="Filter shows...">
+        <select id="list-sort" class="list-sort">
+            <option value="" disabled selected>Sort...</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="year-desc">Year (New > Old)</option>
+            <option value="year-asc">Year (Old > New)</option>
+            <option value="rating-desc">Rating (High > Low)</option>
+            <option value="rating-asc">Rating (Low > High)</option>
+            <option value="eps-desc">Episodes (Most > Least)</option>
+            <option value="eps-asc">Episodes (Least > Most)</option>
+            <option value="added-desc">Added (Recent > Old)</option>
+            <option value="added-asc">Added (Old > Recent)</option>
+        </select>
+    </div>
+
+    <!-- Content -->
+    <div id="loading" class="loading hidden"><div class="spinner"></div></div>
+    <div id="error" class="error hidden"></div>
+    <div id="shows" class="shows-grid"></div>
+
+    <!-- Lists overview -->
+    <div id="lists-view" class="lists-view hidden"></div>
+
+    <!-- Following -->
+    <div id="following-view" class="following-view hidden"></div>
+
+    <!-- Calendar -->
+    <div id="calendar-view" class="calendar-view hidden"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <button id="modal-close" class="modal-close">&times;</button>
+            <img id="m-poster" class="m-poster" src="" alt="">
+            <h2 id="m-title" class="m-title"></h2>
+            <p id="m-meta" class="m-meta"></p>
+            <div id="m-tags" class="m-tags"></div>
+            <div id="m-next" class="m-next hidden"></div>
+            <p id="m-summary" class="m-summary"></p>
+
+            <div class="m-footer">
+                <div class="m-footer-left">
+                    <a id="m-tvmaze" href="#" target="_blank" class="m-link">TVMaze</a>
+                    <button id="m-share" class="m-action-btn" title="Share">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2m0 0L5 5m3-3l3 3"/><path d="M3 8v5.5a.5.5 0 00.5.5h9a.5.5 0 00.5-.5V8"/></svg>
+                    </button>
+                </div>
+                <div id="m-admin-actions" class="m-footer-right hidden">
+                    <button id="m-follow-btn" class="m-follow-btn" title="Follow for calendar"></button>
+                    <button id="m-add-to-list" class="m-action-btn m-action-add" title="Add to list">+</button>
+                    <button id="m-remove-from" class="m-action-btn m-action-remove" title="Remove from list">&minus;</button>
+                </div>
+            </div>
+
+            <!-- Add to list popup -->
+            <div id="m-list-popup" class="m-list-popup hidden">
+                <p class="m-list-popup-title">Add to list:</p>
+                <div id="m-list-options"></div>
+                <button id="m-list-cancel" class="m-list-cancel">Cancel</button>
+            </div>
+
+            <!-- Episodes -->
+            <div id="m-cast-section" class="m-cast-section hidden">
+                <h3>Cast</h3>
+                <div id="m-cast" class="m-cast"></div>
+            </div>
+            <div class="m-episodes">
+                <h3>Episodes</h3>
+                <div id="m-episodes-list" class="m-ep-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <button id="scroll-top" class="scroll-top" aria-label="Scroll to top">↑</button>
+
+    <script src="app.js"></script>
+    <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TVfrog Stats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/tvfrog/favicon-96x96.png" sizes="96x96" />
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        .sh{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:var(--bg);border-bottom:1px solid var(--glass-border)}
+        .sh .ha{display:flex;align-items:center;gap:8px}
+        .h-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--text);opacity:.5;transition:opacity .2s;text-decoration:none}
+        .h-btn:hover{opacity:.9}
+        .h-btn svg{width:18px;height:18px}
+        .sh h1{font-size:1.4em;font-weight:800}
+        .sh a{color:var(--accent);text-decoration:none;font-weight:600;font-size:.88em}
+        .sw{max-width:1100px;margin:0 auto;padding:0 16px 60px}
+        .b{opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s;margin-bottom:28px}.b.v{opacity:1;transform:translateY(0)}
+        .hero{text-align:center;padding:45px 20px;border-radius:20px;color:#fff;overflow:hidden;background:linear-gradient(135deg,#007aff,#5856d6)}
+        .hero-n{font-size:clamp(3.5em,12vw,5.5em);font-weight:900;line-height:1}
+        .hero-l{font-size:1.1em;font-weight:600;margin-top:8px;opacity:.9}
+        .hero-s{font-size:.88em;margin-top:12px;opacity:.65;font-style:italic;max-width:500px;margin-left:auto;margin-right:auto}
+        .ig{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+        .ic{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:14px;padding:16px;text-align:center;box-shadow:var(--card-shadow)}
+        .ic-v{font-size:1.8em;font-weight:900}.ic-l{font-size:.75em;color:var(--text2);margin-top:3px}.ic-f{font-size:.7em;color:var(--text2);margin-top:3px;font-style:italic}
+        .ic.clk{cursor:pointer}
+        .st{font-size:1.05em;font-weight:700;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--glass-border)}
+        .cg{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.cg{grid-template-columns:1fr}}
+        .cc{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:14px;padding:14px;box-shadow:var(--card-shadow)}
+        .cc.w{grid-column:1/-1}.cc h3{font-size:.78em;color:var(--text2);margin-bottom:8px;font-weight:600}
+        .cc canvas{width:100%!important;height:240px!important}
+        .ph{text-align:center;font-size:1.05em;font-weight:600;padding:14px 8px;opacity:.8;line-height:1.5}
+        .ppl{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:12px}
+        .pp{text-align:center;opacity:0;transform:scale(.85);transition:opacity .35s,transform .35s}.pp.pop{opacity:1;transform:scale(1)}
+        .pp img{width:65px;height:65px;border-radius:50%;object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.2);background:#333}
+        .pp .pp-n{font-size:.72em;font-weight:700;margin-top:5px;line-height:1.2}.pp .pp-c{font-size:.65em;color:var(--text2)}
+        .pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+        .po{text-align:center;opacity:0;transform:scale(.85);transition:opacity .35s,transform .35s;cursor:pointer}.po.pop{opacity:1;transform:scale(1)}
+        .po img{width:100%;border-radius:10px;aspect-ratio:2/3;object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+        .po .po-t{font-size:.7em;font-weight:600;margin-top:4px;line-height:1.15}
+    </style>
+</head>
+<body>
+    <header class="sh"><h1>TV Stats</h1><div class="ha"><a href="/tvfrog/">← Back</a><button id="dt" class="h-btn" aria-label="Theme"></button></div></header>
+    <div class="sw" id="sc"><div style="text-align:center;padding:60px;color:var(--text2)">Loading...</div></div>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const ct = document.getElementById('sc');
+    const P = ['#007aff','#34c759','#ff3b30','#ff9500','#af52de','#5ac8fa','#ffcc00','#ff6482','#30d158','#5856d6'];
+    const sunSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    const moonSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+    const dt = document.getElementById('dt');
+    const saved = localStorage.getItem('tvfrog-theme');
+    if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme:dark)').matches)) document.body.classList.add('dark');
+    dt.innerHTML = document.body.classList.contains('dark') ? sunSvg : moonSvg;
+    dt.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        localStorage.setItem('tvfrog-theme', isDark ? 'dark' : 'light');
+        dt.innerHTML = isDark ? sunSvg : moonSvg;
+    });
+    Chart.defaults.animation.duration = 900;
+    const dk = () => document.body.classList.contains('dark'), tc = () => dk() ? '#fff' : '#1c1c1e', gc = () => dk() ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.05)';
+
+    let appData;
+    try { const r = await fetch(`data/app_data.json?v=${Date.now()}`); appData = await r.json(); } catch (e) { ct.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text2)">Could not load data.</p>'; return; }
+
+    const seenIds = appData.userLists?.Seen || [];
+    const sd = appData.showData || {};
+    const shows = seenIds.map(id => sd[String(id)]).filter(Boolean);
+
+    if (!shows.length) { ct.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text2)">No shows in Seen list.</p>'; return; }
+
+    // === ANALYZE (all from local data, instant!) ===
+    const totalEps = shows.reduce((s, sh) => s + (sh.episodeCount || 0), 0);
+    const totalMins = shows.reduce((s, sh) => s + (sh.averageRuntime || sh.runtime || 40) * (sh.episodeCount || 0), 0);
+    const totalH = Math.floor(totalMins / 60);
+    const totalD = (totalMins / 60 / 24).toFixed(1);
+    const totalMo = (totalMins / 60 / 24 / 30).toFixed(1);
+    const totalY = (totalMins / 60 / 24 / 365).toFixed(2);
+    const avgEps = Math.round(totalEps / shows.length);
+    const totalSeasons = shows.reduce((s, sh) => s + (sh.seasonCount || 0), 0);
+    const ratings = shows.filter(s => s.rating).map(s => s.rating);
+    const avgR = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : '—';
+
+    const genres = {}; shows.forEach(s => (s.genres || []).forEach(g => { genres[g] = (genres[g] || 0) + 1; }));
+    const topG = Object.entries(genres).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const networks = {}; shows.forEach(s => { if (s.network) networks[s.network] = (networks[s.network] || 0) + 1; });
+    const topN = Object.entries(networks).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const countries = {}; shows.forEach(s => { if (s.country) countries[s.country] = (countries[s.country] || 0) + 1; });
+    const topC = Object.entries(countries).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const decades = {}; shows.forEach(s => { if (s.premiered) { const d = Math.floor(parseInt(s.premiered.substring(0, 4)) / 10) * 10; decades[d + 's'] = (decades[d + 's'] || 0) + 1; } });
+    const decs = Object.entries(decades).sort((a, b) => a[0].localeCompare(b[0]));
+    const statuses = {}; shows.forEach(s => { statuses[s.status || 'Unknown'] = (statuses[s.status || 'Unknown'] || 0) + 1; });
+    const topS = Object.entries(statuses).sort((a, b) => b[1] - a[1]);
+
+    // Added per year
+    const addedPerYear = {};
+    shows.forEach(s => { if (s.added_date) { const y = s.added_date.substring(0, 4); addedPerYear[y] = (addedPerYear[y] || 0) + 1; } });
+    const addedYears = Object.entries(addedPerYear).sort((a, b) => a[0].localeCompare(b[0]));
+    const bestAddedYear = addedYears.length ? addedYears.reduce((a, b) => b[1] > a[1] ? b : a) : null;
+
+    // Recently added
+    const recentlyAdded = [...shows].filter(s => s.added_date).sort((a, b) => (b.added_date || '').localeCompare(a.added_date || '')).slice(0, 8);
+
+    // Actors
+    const actorCount = {}, actorInfo = {};
+    shows.forEach(sh => (sh.cast || []).forEach(c => { actorCount[c.name] = (actorCount[c.name] || 0) + 1; if (!actorInfo[c.name]) actorInfo[c.name] = c; }));
+    const topActors = Object.entries(actorCount).sort((a, b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({ ...actorInfo[name], count }));
+
+    const topRated = shows.filter(s => s.rating).sort((a, b) => b.rating - a.rating).slice(0, 12);
+    const longest = [...shows].sort((a, b) => (b.episodeCount || 0) - (a.episodeCount || 0)).slice(0, 6);
+
+    const ff = [];
+    ff.push(`<strong>${totalEps.toLocaleString()}</strong> episodes across <strong>${shows.length}</strong> shows and <strong>${totalSeasons}</strong> seasons.`);
+    ff.push(`<strong>${totalH.toLocaleString()} hours</strong> of television. That's <strong>${totalD} days</strong> or <strong>${totalMo} months</strong>.`);
+    if (topActors[0]) ff.push(`<strong>${topActors[0].name}</strong> shows up in ${topActors[0].count} of your shows. A constant presence.`);
+    if (topN[0]) ff.push(`Your go-to network: <strong>${topN[0][0]}</strong> with ${topN[0][1]} shows.`);
+    if (longest[0]) ff.push(`Longest binge: <strong>${longest[0].name}</strong> with ${longest[0].episodeCount} episodes.`);
+    if (bestAddedYear) ff.push(`Most active year: <strong>${bestAddedYear[0]}</strong> with ${bestAddedYear[1]} shows added.`);
+
+    ct.innerHTML = `
+        <div class="b"><div class="hero"><div class="hero-n" id="hn">0</div><div class="hero-l">TV shows watched</div><div class="hero-s">${totalEps.toLocaleString()} episodes. ${totalD} days of television.</div></div></div>
+        <div class="b"><div class="ig">
+            <div class="ic"><div class="ic-v">${totalEps.toLocaleString()}</div><div class="ic-l">Episodes</div></div>
+            <div class="ic clk" id="rtCard"><div class="ic-v">${totalH.toLocaleString()}h</div><div class="ic-l">Runtime (hours)</div><div class="ic-f">tap to switch</div></div>
+            <div class="ic"><div class="ic-v">${avgR}</div><div class="ic-l">Avg Rating</div></div>
+            <div class="ic"><div class="ic-v">${avgEps}</div><div class="ic-l">Avg Eps/Show</div></div>
+            <div class="ic"><div class="ic-v">${totalSeasons}</div><div class="ic-l">Total Seasons</div></div>
+            <div class="ic"><div class="ic-v">${topN[0]?topN[0][0]:'—'}</div><div class="ic-l">Top Network</div></div>
+        </div></div>
+        <div class="b">${ff.map(f => `<div class="ph">${f}</div>`).join('')}</div>
+        <div class="b"><div class="st">Most Seen Actors</div><div class="ppl" id="actG"></div></div>
+        <div class="b"><div class="st">Genres & Networks</div><div class="cg">
+            <div class="cc"><h3>Genres</h3><canvas id="c1"></canvas></div>
+            <div class="cc"><h3>Networks</h3><canvas id="c2"></canvas></div>
+        </div></div>
+        <div class="b"><div class="st">Timeline & Origins</div><div class="cg">
+            <div class="cc"><h3>By Decade</h3><canvas id="c3"></canvas></div>
+            <div class="cc"><h3>Countries</h3><canvas id="c4"></canvas></div>
+        </div></div>
+        <div class="b"><div class="st">Show Status</div><div class="cg"><div class="cc w"><canvas id="c5"></canvas></div></div></div>
+        <div class="b"><div class="st">Shows Added Per Year</div><div class="cg"><div class="cc w"><canvas id="c6"></canvas></div></div></div>
+        <div class="b"><div class="st">Highest Rated</div><div class="pg" id="topG"></div></div>
+        <div class="b"><div class="st">Longest Binges</div><div class="pg" id="longG"></div></div>
+        <div class="b"><div class="st">Recently Added</div><div class="pg" id="recG"></div></div>
+    `;
+
+    // Counter
+    let c = 0; const step = Math.max(1, Math.floor(shows.length / 50));
+    const hn = document.getElementById('hn');
+    const ci = setInterval(() => { c = Math.min(c + step, shows.length); hn.textContent = c; if (c >= shows.length) clearInterval(ci); }, 18);
+
+    // Runtime switcher
+    const rtF = [{ v: `${totalH.toLocaleString()}h`, l: 'hours' }, { v: totalD, l: 'days' }, { v: totalMo, l: 'months' }, { v: totalY, l: 'years' }];
+    let rtIdx = 0;
+    document.getElementById('rtCard').addEventListener('click', () => { rtIdx = (rtIdx + 1) % rtF.length; document.getElementById('rtCard').querySelector('.ic-v').textContent = rtF[rtIdx].v; document.getElementById('rtCard').querySelector('.ic-l').textContent = `Runtime (${rtF[rtIdx].l})`; });
+
+    // Actors
+    topActors.forEach(p => { const d = document.createElement('div'); d.className = 'pp'; d.innerHTML = `<img src="${p.image || ''}" loading="lazy"><div class="pp-n">${p.name}</div><div class="pp-c">${p.count} shows</div>`; document.getElementById('actG').appendChild(d); });
+
+    // Charts
+    const co = () => ({ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: tc() }, grid: { color: gc() } }, x: { ticks: { color: tc() }, grid: { display: false } } } });
+    const don = () => ({ responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tc(), font: { size: 10 } } } }, scales: {} });
+
+    new Chart(document.getElementById('c1'), { type: 'doughnut', data: { labels: topG.map(g => g[0]), datasets: [{ data: topG.map(g => g[1]), backgroundColor: P }] }, options: don() });
+    new Chart(document.getElementById('c2'), { type: 'bar', data: { labels: topN.map(n => n[0]), datasets: [{ data: topN.map(n => n[1]), backgroundColor: '#5856d6aa', borderRadius: 6 }] }, options: { ...co(), indexAxis: 'y' } });
+    new Chart(document.getElementById('c3'), { type: 'bar', data: { labels: decs.map(d => d[0]), datasets: [{ data: decs.map(d => d[1]), backgroundColor: '#007affaa', borderRadius: 6 }] }, options: co() });
+    new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topC.map(c => c[0]), datasets: [{ data: topC.map(c => c[1]), backgroundColor: '#ff9500aa', borderRadius: 6 }] }, options: { ...co(), indexAxis: 'y' } });
+    new Chart(document.getElementById('c5'), { type: 'doughnut', data: { labels: topS.map(s => s[0]), datasets: [{ data: topS.map(s => s[1]), backgroundColor: ['#34c759', '#ff3b30', '#ff9500', '#8e8e93', '#007aff'] }] }, options: don() });
+
+    // Added per year chart
+    if (addedYears.length) {
+        const yColors = addedYears.map(([y]) => ({2024:'#5ac8fa',2025:'#007aff',2026:'#ff6482'}[y]||'#8e8e93'));
+        new Chart(document.getElementById('c6'), { type: 'bar', data: { labels: addedYears.map(y => y[0]), datasets: [{ data: addedYears.map(y => y[1]), backgroundColor: yColors, borderRadius: 8 }] }, options: co() });
+    }
+
+    // Recently added
+    const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const recG = document.getElementById('recG');
+    recentlyAdded.forEach(s => {
+        const d = document.createElement('div'); d.className = 'po';
+        const ad = s.added_date ? (() => { const t = new Date(s.added_date+'T00:00:00'); return `${MN[t.getMonth()]} ${t.getDate()}, ${t.getFullYear()}`; })() : '';
+        d.innerHTML = `<img src="${(s.image?.medium||s.image?.original)||''}" loading="lazy"><div style="font-size:.68em;color:var(--text2);margin-top:3px">${ad}</div><div class="po-t">${s.name}</div>`;
+        d.onclick = () => window.open(s.url, '_blank');
+        recG.appendChild(d);
+    });
+
+    // Posters
+    topRated.forEach(s => { const d = document.createElement('div'); d.className = 'po'; d.innerHTML = `<img src="${(s.image?.medium||s.image?.original)||''}" loading="lazy"><div style="font-size:.78em;font-weight:800;color:var(--green);margin-top:3px">${s.rating}</div><div class="po-t">${s.name}</div>`; d.onclick = () => window.open(s.url, '_blank'); document.getElementById('topG').appendChild(d); });
+    longest.forEach(s => { const d = document.createElement('div'); d.className = 'po'; d.innerHTML = `<img src="${(s.image?.medium||s.image?.original)||''}" loading="lazy"><div style="font-size:.78em;font-weight:800;color:var(--orange);margin-top:3px">${s.episodeCount} eps</div><div class="po-t">${s.name}</div>`; d.onclick = () => window.open(s.url, '_blank'); document.getElementById('longG').appendChild(d); });
+
+    // Animate
+    const obs = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('v'); obs.unobserve(e.target); } }); }, { threshold: .05 });
+    ct.querySelectorAll('.b').forEach((b, i) => setTimeout(() => obs.observe(b), i * 50));
+    ct.querySelectorAll('.po,.pp').forEach((p, i) => setTimeout(() => p.classList.add('pop'), 120 + i * 40));
+});
+</script>
+</body>
+</html>

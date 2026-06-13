@@ -1,0 +1,11 @@
+# Configuration (contains password hash)
+admin/api/config.php
+
+# Personal data
+data/app_data.json
+!data/app_data.example.json
+
+# System
+.DS_Store
+Thumbs.db
+*.swp
